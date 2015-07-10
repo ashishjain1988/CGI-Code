@@ -36,7 +36,7 @@ public class CreateCbioportalFilesWithMetaData {
 
 	public static String CENTER = "CGI_Rutherford";
 	public static String NCBI_BUILD = "GRCh37";
-	public static String cancercode = "CLL";
+	//public static String cancercode = "CLL";
 	public static String year = "2015";
 	public static String CBIOPORTAL = "cbioportal";
 	//public static String SEQUENCER = "MiSeq_M00177";
@@ -247,8 +247,8 @@ public class CreateCbioportalFilesWithMetaData {
 								{
 									dbSNP = row.getCell(summaryDataFieldColumnMapping.get("dbSNP ID_45")).toString();
 								}
-								String siftValue,polyphenValue,cosmicId;
-								siftValue = polyphenValue = cosmicId = "";
+								String siftValue,polyphenValue;
+								siftValue = polyphenValue = "";
 								if(row.getCell(summaryDataFieldColumnMapping.get("Sift_40")) != null)
 								{
 									siftValue = row.getCell(summaryDataFieldColumnMapping.get("Sift_40")).toString();
@@ -257,16 +257,12 @@ public class CreateCbioportalFilesWithMetaData {
 								{
 									polyphenValue = row.getCell(summaryDataFieldColumnMapping.get("PolyPhen_41")).toString();
 								}
-								/*if(row.getCell(summaryDataFieldColumnMapping.get("COSMIC ID_58")) != null)
-								{
-									cosmicId = row.getCell(summaryDataFieldColumnMapping.get("COSMIC ID_58")).toString();
-								}*/
 
 								mappingMap = new HashMap<String, String>();
 								//Check for the errors.
 								sampleId = checkSampleId(sampleId);
 								sampleList.add(sampleId);
-								mappingMap.put("Assay_Id",assayNameMapping.get(assay));
+								mappingMap.put("Assay_Id",assayNameMapping.get(assay/*"FocusCLL"*/));
 								mappingMap.put("Tumor_Sample_Barcode",sampleId);
 								mappingMap.put("Hugo_Symbol",geneName);
 								mappingMap.put("Center",CENTER);
@@ -334,6 +330,7 @@ public class CreateCbioportalFilesWithMetaData {
 				boolean getSequencer = true;
 				String SEQUENCER = "";
 				String RunId = "";
+				boolean getHeader = true;
 				while (rowIterator.hasNext()) {
 
 					Row row = rowIterator.next();
@@ -347,82 +344,96 @@ public class CreateCbioportalFilesWithMetaData {
 						}
 						getSequencer = false;
 					}
-					if(row.getCell(0) != null && !row.getCell(0).toString().equals("") && row.getCell(1) != null && row.getCell(1).toString().equalsIgnoreCase("Negative"))
+					Cell cell = row.getCell(0);
+					Cell cell1 = row.getCell(1);
+					Cell cell2 = row.getCell(2);
+					//Condition to check the header in the file.
+					if(getHeader && cell != null && cell1 != null && cell2!= null && cell.getStringCellValue().equals("Sample") && cell1.getStringCellValue().equals("Gene") && cell2.getStringCellValue().equals("Coordinate_3"))
 					{
-						String sampleId = row.getCell(0).toString().trim();
-						//Check for the errors.
-						sampleId = checkSampleId(sampleId);
-						dataMapping = sampleDataMapping.get(sampleId);
-						if(dataMapping != null)
+						Iterator<Cell> cellIterator = row.cellIterator();
+						while(cellIterator.hasNext())
 						{
-							if(!RunId.equals(""))
-							{
-								dataMapping.put("Run Id", RunId.split(":")[1]);
-								dataMapping.put("Run Date",RunId.split(":")[1].split("_")[0]);
-								sampleDataMapping.put(sampleId, dataMapping);
-							}
-						}else
-						{
-							//System.out.println("Not in patient file"+sampleId);
-							missingPatientsIds.add(sampleId);
+							cell = cellIterator.next();
+							//System.out.println(cell.getStringCellValue());
+							summaryDataFieldColumnMap.put(cell.getStringCellValue().trim(), cell.getColumnIndex());
 						}
-					}
+						getHeader = false;
+					}else
+					{
+						if(!getHeader)
+						{
+							//Condition to get the negative samples from the summary sheet.
+							if(row.getCell(0) != null && !row.getCell(0).toString().equals("") && row.getCell(1) != null && row.getCell(1).toString().equalsIgnoreCase("Negative"))
+							{
+								String sampleId = row.getCell(0).toString().trim();
+								//Check for the errors.
+								sampleId = checkSampleId(sampleId);
+								dataMapping = sampleDataMapping.get(sampleId);
+								if(dataMapping != null)
+								{
+									if(!RunId.equals(""))
+									{
+										dataMapping.put("Run Id", RunId.split(":")[1]);
+										dataMapping.put("Run Date",RunId.split(":")[1].split("_")[0]);
+										sampleDataMapping.put(sampleId, dataMapping);
+									}
+								}else
+								{
+									//System.out.println("Not in patient file"+sampleId);
+									missingPatientsIds.add(sampleId);
+								}
+							}
 
-					if(row.getCell(0) != null && row.getCell(2) != null && row.getCell(2).getCellType() == Cell.CELL_TYPE_NUMERIC && row.getCell(3) != null)
-					{
-						Double coordinate = row.getCell(2).getNumericCellValue();
-						int coordinate1 = coordinate.intValue();
-						String sampleId = row.getCell(0).toString().trim();
-						String identifier = sampleId+":"+coordinate1+":"+row.getCell(3).toString().trim();
-						mappingMap = dataMap.get(identifier);
-						if(mappingMap != null)
-						{
-							if(row.getCell(16) != null && !row.getCell(16).toString().equals(""))
+							//Condition to uniquely map the rows in the Run Summary sheet with the rows of Summary sheet
+							if(row.getCell(summaryDataFieldColumnMap.get("Sample")) != null && row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")) != null && row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")).getCellType() == Cell.CELL_TYPE_NUMERIC && row.getCell(summaryDataFieldColumnMap.get("HGVSc_43")) != null)
 							{
-								String validation = row.getCell(16).toString();
-								mappingMap.put("Validation_Method", validation.split("_")[0]);
-								mappingMap.put("Validation_Status", validation.split("_")[1]);
+								Double coordinate = row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")).getNumericCellValue();
+								int coordinate1 = coordinate.intValue();
+								String sampleId = row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().trim();
+								String identifier = sampleId+":"+coordinate1+":"+row.getCell(summaryDataFieldColumnMap.get("HGVSc_43")).toString().trim();
+								mappingMap = dataMap.get(identifier);
+								if(mappingMap != null)
+								{
+									if(row.getCell(summaryDataFieldColumnMap.get("Confirmation")) != null && !row.getCell(summaryDataFieldColumnMap.get("Confirmation")).toString().equals(""))
+									{
+										String validation = row.getCell(summaryDataFieldColumnMap.get("Confirmation")).toString();
+										mappingMap.put("Validation_Method", validation.split("_")[0]);
+										mappingMap.put("Validation_Status", validation.split("_")[1]);
+									}
+									if(row.getCell(summaryDataFieldColumnMap.get("Comments")) != null)
+									{
+										mappingMap.put("Comments", row.getCell(summaryDataFieldColumnMap.get("Comments")).toString());
+									}
+									if(row.getCell(summaryDataFieldColumnMap.get("FINAL CALL")) != null)
+									{
+										mappingMap.put("Sign_Out_Status", row.getCell(summaryDataFieldColumnMap.get("FINAL CALL")).toString());
+									}
+									if(row.getCell(summaryDataFieldColumnMap.get("Functional Impact")) != null)
+									{
+										Cell localCell = row.getCell(summaryDataFieldColumnMap.get("Functional Impact"));
+										/*if(!(localCell.toString().equals("Benign") || localCell.toString().equals("UNS") || localCell.toString().equals("Pathogenic") || localCell.toString().equals("")))
+											faultFiles.add(myFile.getName());*/
+										mappingMap.put("Final_Assesment", localCell.toString());
+									}
+								}
+								//Check for the errors.
+								sampleId = checkSampleId(sampleId);
+								dataMapping = sampleDataMapping.get(sampleId);
+								if(dataMapping != null)
+								{
+									if(!RunId.equals(""))
+									{
+										dataMapping.put("Run Id", RunId.split(":")[1]);
+										dataMapping.put("Run Date",RunId.split(":")[1].split("_")[0]);
+										sampleDataMapping.put(sampleId, dataMapping);
+									}
+								}else
+								{
+									//System.out.println("Not in patient file"+sampleId);
+									missingPatientsIds.add(sampleId);
+								}
+
 							}
-							if(row.getCell(20) != null)
-							{
-								mappingMap.put("Comments", row.getCell(20).toString());
-							}
-							if(row.getCell(19) != null)
-							{
-								if(!(row.getCell(19).toString().equals("Benign") || row.getCell(19).toString().equals("UNS") || row.getCell(19).toString().equals("Pathogenic") || row.getCell(19).toString().equals("")))
-									faultFiles.add(myFile.getName());
-								mappingMap.put("Final_Assesment", row.getCell(19).toString());
-							}
-							/*if(row.getCell(19) != null)
-						{
-							mappingMap.put("Comments", row.getCell(19).toString());
-						}
-						if(row.getCell(20) != null)
-						{
-							if(!(row.getCell(20).toString().equals("Benign") || row.getCell(20).toString().equals("UNS") || row.getCell(20).toString().equals("Pathogenic") || row.getCell(20).toString().equals("")))
-								faultFiles.add(myFile.getName());
-							mappingMap.put("Final_Assesment", row.getCell(20).toString());
-						}*/
-							if(row.getCell(21) != null)
-							{
-								mappingMap.put("Sign_Out_Status", row.getCell(21).toString());
-							}
-						}
-						//Check for the errors.
-						sampleId = checkSampleId(sampleId);
-						dataMapping = sampleDataMapping.get(sampleId);
-						if(dataMapping != null)
-						{
-							if(!RunId.equals(""))
-							{
-								dataMapping.put("Run Id", RunId.split(":")[1]);
-								dataMapping.put("Run Date",RunId.split(":")[1].split("_")[0]);
-								sampleDataMapping.put(sampleId, dataMapping);
-							}
-						}else
-						{
-							//System.out.println("Not in patient file"+sampleId);
-							missingPatientsIds.add(sampleId);
 						}
 
 					}
@@ -505,10 +516,14 @@ public class CreateCbioportalFilesWithMetaData {
 						if(sampleIdListIncancer.contains(sampleId))
 						{
 							mappingMap = entry.getValue();
-							for (String key : dataList) { 
-								pw.print((mappingMap.get(key) == null?"":mappingMap.get(key))+"\t");
-							}
-							pw.println();
+							/*//Check for the positive variant cases
+							if((mappingMap.get("Sign_Out_Status") != null && mappingMap.get("Sign_Out_Status").equals("Positive")) || (mappingMap.get("Validation_Status") != null && mappingMap.get("Validation_Status").equals("Valid")))
+							{*/
+								for (String key : dataList) { 
+									pw.print((mappingMap.get(key) == null?"":mappingMap.get(key))+"\t");
+								}
+								pw.println();
+							/*}*/
 						}
 					}else{
 						//System.out.println("Sample Id not in Patient Sample mapping File "+sampleId);
