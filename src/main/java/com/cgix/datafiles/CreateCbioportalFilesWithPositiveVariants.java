@@ -15,29 +15,22 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-/**
- * 
- * @author Ashish Jain
- * 
- * This file is being used to create the data mutation file
- * in the cbioportal format for importing the CGI gene mutation
- * data from the CGIX to cbioportal format.
- *
- */
-public class CreateCbioportalFilesWithMetaData {
+public class CreateCbioportalFilesWithPositiveVariants {
 
 	public static String CENTER = "CGI_Rutherford";
 	public static String NCBI_BUILD = "GRCh37";
+	public static String cancercode = "CLL";
 	public static String year = "2015";
 	public static String CBIOPORTAL = "cbioportal";
+	//public static String SEQUENCER = "MiSeq_M00177";
 	/*public static final Map<String, String> Mutation_Type_Map = new HashMap<String, String>(){{
 		put("missense_variant","missense_mutation");
 		put("","nonsense_mutation");
@@ -245,8 +238,8 @@ public class CreateCbioportalFilesWithMetaData {
 								{
 									dbSNP = row.getCell(summaryDataFieldColumnMapping.get("dbSNP ID_45")).toString();
 								}
-								String siftValue,polyphenValue;
-								siftValue = polyphenValue = "";
+								String siftValue,polyphenValue,cosmicId;
+								siftValue = polyphenValue = cosmicId = "";
 								if(row.getCell(summaryDataFieldColumnMapping.get("Sift_40")) != null)
 								{
 									siftValue = row.getCell(summaryDataFieldColumnMapping.get("Sift_40")).toString();
@@ -255,12 +248,16 @@ public class CreateCbioportalFilesWithMetaData {
 								{
 									polyphenValue = row.getCell(summaryDataFieldColumnMapping.get("PolyPhen_41")).toString();
 								}
+								/*if(row.getCell(summaryDataFieldColumnMapping.get("COSMIC ID_58")) != null)
+								{
+									cosmicId = row.getCell(summaryDataFieldColumnMapping.get("COSMIC ID_58")).toString();
+								}*/
 
 								mappingMap = new HashMap<String, String>();
 								//Check for the errors.
 								sampleId = checkSampleId(sampleId);
 								sampleList.add(sampleId);
-								mappingMap.put("Assay_Id",assayNameMapping.get(assay/*"FocusCLL"*/));
+								mappingMap.put("Assay_Id",assayNameMapping.get(/*assay*/"FocusCLL"));
 								mappingMap.put("Tumor_Sample_Barcode",sampleId);
 								mappingMap.put("Hugo_Symbol",geneName);
 								mappingMap.put("Center",CENTER);
@@ -519,14 +516,14 @@ public class CreateCbioportalFilesWithMetaData {
 						if(sampleIdListIncancer.contains(sampleId))
 						{
 							mappingMap = entry.getValue();
-							/*//Check for the positive variant cases
+							//Check for the positive variant cases
 							if((mappingMap.get("Sign_Out_Status") != null && mappingMap.get("Sign_Out_Status").equals("Positive")) || (mappingMap.get("Validation_Status") != null && mappingMap.get("Validation_Status").equals("Valid")))
-							{*/
+							{
 								for (String key : dataList) { 
 									pw.print((mappingMap.get(key) == null?"":mappingMap.get(key))+"\t");
 								}
 								pw.println();
-							/*}*/
+							}
 						}
 					}else{
 						//System.out.println("Sample Id not in Patient Sample mapping File "+sampleId);
