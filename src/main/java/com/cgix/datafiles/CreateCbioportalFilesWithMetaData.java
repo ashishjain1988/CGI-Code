@@ -188,7 +188,6 @@ public class CreateCbioportalFilesWithMetaData {
 		ArrayList<String> dataList = new ArrayList<String>(Arrays.asList("Tumor_Sample_Barcode", "Hugo_Symbol", "Center","NCBI_Build","Start_Position","Variant_Classification","Variant_Type","Reference_Allele","Tumor_Seq_Allele1",
 				"Tumor_Seq_Allele2","dbSNP_RS","t_alt_count","t_ref_count","Chromosome","Sequencer","Amino_Acid_Change","Mutation_Status","End_Position","Comments","Sign_Out_Status","Polphen_value","Polphen_call",
 				"Sift_value","Sift_call","Final_Assesment","Validation_Status","Validation_Method","Assay_Id"));
-		//String excelFileName = args[0];
 		//Reading from Final Mutation Summary Analysis File
 		File dir = new File(/*"/home/ashish/Downloads/CGIX_CLL_Summary_Data"*/summarySheetFolder);
 		File [] files = dir.listFiles();
@@ -199,129 +198,10 @@ public class CreateCbioportalFilesWithMetaData {
 		{
 			if(files[i].isFile())
 			{
-				myFile = /*new File("/home/ashish/Downloads/1-4-15_Analysis Summary Sheet_011415.xlsx"excelFileName)*/files[i];
-				//System.out.println(myFile.getName());
+				myFile = files[i];
 				fis = new FileInputStream(myFile);
 				myWorkBook = new XSSFWorkbook (fis);
-				//Reading data from the SummarySheet of the Excel file.
-				mySheet = myWorkBook.getSheet("SummarySheet");
-				rowIterator = mySheet.iterator();
-				count = 0;
-				Map<String, Integer> summaryDataFieldColumnMapping = new HashMap<String, Integer>();
-
-				// Traversing over each row of XLSX file
-				Set<String> sampleList = new HashSet<String>();
-				while (rowIterator.hasNext()) {
-					Row row = rowIterator.next();
-					// For each row, iterate through each columns
-					if(count !=0)
-					{
-						//int length = row.getLastCellNum();
-						if(row.getCell(summaryDataFieldColumnMapping.get("Sample")) != null)
-						{
-							String sampleId = row.getCell(summaryDataFieldColumnMapping.get("Sample")).toString();
-							if(!sampleId.equalsIgnoreCase("Positive") && !sampleId.startsWith("R"))//Check for Controls and Repeats. 
-							{
-								String geneName = row.getCell(summaryDataFieldColumnMapping.get("Gene_0")).toString();
-								Double startCoordinate = row.getCell(summaryDataFieldColumnMapping.get("Coordinate_3")).getNumericCellValue();
-								int startCoordinate1 = startCoordinate.intValue();
-								int stopCoordinate = 0;
-								if(summaryDataFieldColumnMapping.get("Variant Length_4") != null)
-								{
-									Double variantLength = row.getCell(summaryDataFieldColumnMapping.get("Variant Length_4")).getNumericCellValue();
-									stopCoordinate = startCoordinate1 + variantLength.intValue();
-								}
-								String geneMutationData = row.getCell(summaryDataFieldColumnMapping.get("Variant_1")).toString();
-								Double readDepth1 = row.getCell(summaryDataFieldColumnMapping.get("Read Depth_14")).getNumericCellValue();
-								int readDepth = readDepth1.intValue();
-								Double altReadDepth1 = row.getCell(summaryDataFieldColumnMapping.get("Alt Read Depth_15")).getNumericCellValue();
-								int altReadDepth = altReadDepth1.intValue();
-								String variantClassification = row.getCell(summaryDataFieldColumnMapping.get("Consequence_29")).toString();
-								Double chrom = row.getCell(summaryDataFieldColumnMapping.get("Chr_2")).getNumericCellValue();
-								int chromosome = chrom.intValue();
-								String variantType = row.getCell(summaryDataFieldColumnMapping.get("Type_5")).toString();
-								String dbSNP = "";
-								if(row.getCell(summaryDataFieldColumnMapping.get("dbSNP ID_45")) != null)
-								{
-									dbSNP = row.getCell(summaryDataFieldColumnMapping.get("dbSNP ID_45")).toString();
-								}
-								String siftValue,polyphenValue;
-								siftValue = polyphenValue = "";
-								if(row.getCell(summaryDataFieldColumnMapping.get("Sift_40")) != null)
-								{
-									siftValue = row.getCell(summaryDataFieldColumnMapping.get("Sift_40")).toString();
-								}
-								if(row.getCell(summaryDataFieldColumnMapping.get("PolyPhen_41")) != null)
-								{
-									polyphenValue = row.getCell(summaryDataFieldColumnMapping.get("PolyPhen_41")).toString();
-								}
-
-								mappingMap = new HashMap<String, String>();
-								//Check for the errors.
-								sampleId = checkSampleId(sampleId);
-								sampleList.add(sampleId);
-								mappingMap.put("Assay_Id",assayNameMapping.get(assay/*"FocusCLL"*/));
-								mappingMap.put("Tumor_Sample_Barcode",sampleId);
-								mappingMap.put("Hugo_Symbol",geneName);
-								mappingMap.put("Center",CENTER);
-								mappingMap.put("NCBI_Build",NCBI_BUILD);
-								mappingMap.put("Start_Position", String.valueOf(startCoordinate1));
-								mappingMap.put("Variant_Classification",variantClassification);
-								mappingMap.put("Variant_Type",variantType);
-								mappingMap.put("Reference_Allele", geneMutationData.split(">")[0]);
-								mappingMap.put("Tumor_Seq_Allele1", geneMutationData.split(">")[1].split("/")[0]);
-								mappingMap.put("Tumor_Seq_Allele2", geneMutationData.split(">")[1].split("/")[1]);
-								mappingMap.put("dbSNP_RS", dbSNP);
-								mappingMap.put("t_alt_count", String.valueOf(altReadDepth));
-								mappingMap.put("t_ref_count", String.valueOf(readDepth-altReadDepth));
-								mappingMap.put("Chromosome", String.valueOf(chromosome));
-								if(summaryDataFieldColumnMapping.get("Variant Length_4") != null)
-								{
-									mappingMap.put("End_Position", String.valueOf(stopCoordinate));
-								}
-								mappingMap.put("Mutation_Status", "Somatic");//TODO
-								if(polyphenValue != null && !polyphenValue.equals(""))
-								{
-									mappingMap.put("Polphen_value", polyphenValue.split("\\(")[1].split("\\)")[0]);
-									mappingMap.put("Polphen_call", polyphenValue.split("\\(")[0]);
-								}
-								if(siftValue != null && !siftValue.equals(""))
-								{
-									mappingMap.put("Sift_value", siftValue.split("\\(")[1].split("\\)")[0]);
-									mappingMap.put("Sift_call", siftValue.split("\\(")[0]);
-								}
-								/*if(cosmicId != null && !cosmicId.equals(""))
-								{
-									cosmicId = processCosmicId(cosmicId);
-									mappingMap.put("keyword", cosmicId);
-								}*/
-
-								if(row.getCell(summaryDataFieldColumnMapping.get("HGVSp_44")) != null)
-								{
-									String HGVs = row.getCell(summaryDataFieldColumnMapping.get("HGVSp_44")).toString();
-									mappingMap.put("Amino_Acid_Change", Convert3to1AA.convert3aaTo1(HGVs));
-								}else
-								{
-									String HGVs = "";
-									mappingMap.put("Amino_Acid_Change", Convert3to1AA.convert3aaTo1(HGVs));
-								}
-								dataMap.put(sampleId.trim()+":"+startCoordinate1+":"+row.getCell(summaryDataFieldColumnMapping.get("HGVSc_43")).toString().trim(), mappingMap);
-							}
-						}
-					}else
-					{
-						Iterator<Cell> cellIterator = row.cellIterator();
-						Cell cell;
-						while(cellIterator.hasNext())
-						{
-							cell = cellIterator.next();
-							summaryDataFieldColumnMapping.put(cell.getStringCellValue().trim(), cell.getColumnIndex());
-						}
-
-					}
-					count++;
-				}
-
+				
 				//Reading data from the RunSummary of the Excel file.
 				mySheet = myWorkBook.getSheet("RunSummary");
 				rowIterator = mySheet.iterator();
@@ -360,38 +240,43 @@ public class CreateCbioportalFilesWithMetaData {
 					{
 						if(!getHeader)
 						{
-							//Condition to get the negative samples from the summary sheet.
-							if(row.getCell(0) != null && !row.getCell(0).toString().equals("") && row.getCell(1) != null && row.getCell(1).toString().equalsIgnoreCase("Negative"))
+							if(row.getCell(summaryDataFieldColumnMap.get("Sample")) != null && !row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().equals("") && !row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().trim().contains("Positive") && !row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().trim().startsWith("R"))
 							{
-								String sampleId = row.getCell(0).toString().trim();
-								//Check for the errors.
-								sampleId = checkSampleId(sampleId);
-								dataMapping = sampleDataMapping.get(sampleId);
-								if(dataMapping != null)
+								//Condition to get the negative samples from the summary sheet.
+								if(row.getCell(1) != null && row.getCell(1).toString().equalsIgnoreCase("Negative"))
 								{
-									if(!RunId.equals(""))
+									String sampleId = row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().trim();
+									//Check for the errors.
+									sampleId = checkSampleId(sampleId);
+									dataMapping = sampleDataMapping.get(sampleId);
+									if(dataMapping != null)
 									{
-										dataMapping.put("Run Id", RunId.split(":")[1]);
-										dataMapping.put("Run Date",RunId.split(":")[1].split("_")[0]);
-										sampleDataMapping.put(sampleId, dataMapping);
+										if(!RunId.equals(""))
+										{
+											dataMapping.put("Run Id", RunId.split(":")[1]);
+											dataMapping.put("Run Date",RunId.split(":")[1].split("_")[0]);
+											sampleDataMapping.put(sampleId, dataMapping);
+										}
+									}else
+									{
+										//System.out.println("Not in patient file"+sampleId);
+										missingPatientsIds.add(sampleId);
 									}
-								}else
-								{
-									//System.out.println("Not in patient file"+sampleId);
-									missingPatientsIds.add(sampleId);
 								}
-							}
 
-							//Condition to uniquely map the rows in the Run Summary sheet with the rows of Summary sheet
-							if(row.getCell(summaryDataFieldColumnMap.get("Sample")) != null && row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")) != null && row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")).getCellType() == Cell.CELL_TYPE_NUMERIC && row.getCell(summaryDataFieldColumnMap.get("HGVSc_43")) != null)
-							{
-								Double coordinate = row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")).getNumericCellValue();
-								int coordinate1 = coordinate.intValue();
-								String sampleId = row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().trim();
-								String identifier = sampleId+":"+coordinate1+":"+row.getCell(summaryDataFieldColumnMap.get("HGVSc_43")).toString().trim();
-								mappingMap = dataMap.get(identifier);
-								if(mappingMap != null)
+								//Condition to uniquely map the rows in the Run Summary sheet with the rows of Summary sheet
+								if(row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")) != null && row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")).getCellType() == Cell.CELL_TYPE_NUMERIC && row.getCell(summaryDataFieldColumnMap.get("HGVSc_43")) != null)
 								{
+									Double coordinate = row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")).getNumericCellValue();
+									int coordinate1 = coordinate.intValue();
+									String sampleId = row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().trim();
+									//Check for the errors.
+									sampleId = checkSampleId(sampleId);
+									String identifier = sampleId+":"+coordinate1+":"+row.getCell(summaryDataFieldColumnMap.get("HGVSc_43")).toString().trim();
+									mappingMap = new HashMap<String, String>();
+									/*if(sampleId.equals("33412_002728"))
+									System.out.println(sampleId+ " "+myFile.getName());*/
+									mappingMap.put("Tumor_Sample_Barcode",sampleId);
 									if(row.getCell(summaryDataFieldColumnMap.get("Confirmation")) != null && !row.getCell(summaryDataFieldColumnMap.get("Confirmation")).toString().equals(""))
 									{
 										String validation = row.getCell(summaryDataFieldColumnMap.get("Confirmation")).toString();
@@ -404,7 +289,8 @@ public class CreateCbioportalFilesWithMetaData {
 									}
 									if(row.getCell(summaryDataFieldColumnMap.get("FINAL CALL")) != null)
 									{
-										mappingMap.put("Sign_Out_Status", row.getCell(summaryDataFieldColumnMap.get("FINAL CALL")).toString());
+										mappingMap.put("Sign_Out_Status", row.getCell(summaryDataFieldColumnMap.get("FINAL CALL")).toString().trim());
+
 									}
 									if(row.getCell(summaryDataFieldColumnMap.get("Functional Impact")) != null)
 									{
@@ -413,24 +299,19 @@ public class CreateCbioportalFilesWithMetaData {
 											faultFiles.add(myFile.getName());*/
 										mappingMap.put("Final_Assesment", localCell.toString());
 									}
-								}
-								//Check for the errors.
-								sampleId = checkSampleId(sampleId);
-								dataMapping = sampleDataMapping.get(sampleId);
-								if(dataMapping != null)
-								{
-									if(!RunId.equals(""))
-									{
-										dataMapping.put("Run Id", RunId.split(":")[1]);
-										dataMapping.put("Run Date",RunId.split(":")[1].split("_")[0]);
-										sampleDataMapping.put(sampleId, dataMapping);
-									}
-								}else
-								{
-									//System.out.println("Not in patient file"+sampleId);
-									missingPatientsIds.add(sampleId);
-								}
 
+									dataMapping = sampleDataMapping.get(sampleId);
+									if(dataMapping != null)
+									{
+										if(!RunId.equals(""))
+										{
+											dataMapping.put("Run Id", RunId.split(":")[1]);
+											dataMapping.put("Run Date",RunId.split(":")[1].split("_")[0]);
+											sampleDataMapping.put(sampleId, dataMapping);
+										}
+									}
+									dataMap.put(identifier, mappingMap);
+								}
 							}
 						}
 
@@ -441,6 +322,126 @@ public class CreateCbioportalFilesWithMetaData {
 					mappingMap = entry.getValue();
 					mappingMap.put("Sequencer", SEQUENCER);
 				}
+				
+				//Reading data from the SummarySheet of the Excel file.
+				mySheet = myWorkBook.getSheet("SummarySheet");
+				rowIterator = mySheet.iterator();
+				count = 0;
+				Map<String, Integer> summaryDataFieldColumnMapping = new HashMap<String, Integer>();
+
+				// Traversing over each row of XLSX file
+				//Set<String> sampleList = new HashSet<String>();
+				while (rowIterator.hasNext()) {
+					Row row = rowIterator.next();
+					// For each row, iterate through each columns
+					if(count !=0)
+					{
+						if(row.getCell(summaryDataFieldColumnMapping.get("Sample")) != null)
+						{
+							String sampleId = row.getCell(summaryDataFieldColumnMapping.get("Sample")).toString();
+							String variantClassification = row.getCell(summaryDataFieldColumnMapping.get("Consequence_29")).toString();
+							/*if(!sampleId.equalsIgnoreCase("Positive") && !sampleId.startsWith("R") && !variantClassification.contains("intron"))//Check for Controls and Repeats. 
+							{*/
+							String geneName = row.getCell(summaryDataFieldColumnMapping.get("Gene_0")).toString();
+							Double startCoordinate = row.getCell(summaryDataFieldColumnMapping.get("Coordinate_3")).getNumericCellValue();
+							int startCoordinate1 = startCoordinate.intValue();
+							int stopCoordinate = 0;
+							if(summaryDataFieldColumnMapping.get("Variant Length_4") != null)
+							{
+								Double variantLength = row.getCell(summaryDataFieldColumnMapping.get("Variant Length_4")).getNumericCellValue();
+								stopCoordinate = startCoordinate1 + variantLength.intValue();
+							}
+							String geneMutationData = row.getCell(summaryDataFieldColumnMapping.get("Variant_1")).toString();
+							Double readDepth1 = row.getCell(summaryDataFieldColumnMapping.get("Read Depth_14")).getNumericCellValue();
+							int readDepth = readDepth1.intValue();
+							Double altReadDepth1 = row.getCell(summaryDataFieldColumnMapping.get("Alt Read Depth_15")).getNumericCellValue();
+							int altReadDepth = altReadDepth1.intValue();
+
+							Double chrom = row.getCell(summaryDataFieldColumnMapping.get("Chr_2")).getNumericCellValue();
+							int chromosome = chrom.intValue();
+							String variantType = row.getCell(summaryDataFieldColumnMapping.get("Type_5")).toString();
+							String dbSNP = "";
+							if(row.getCell(summaryDataFieldColumnMapping.get("dbSNP ID_45")) != null)
+							{
+								dbSNP = row.getCell(summaryDataFieldColumnMapping.get("dbSNP ID_45")).toString();
+							}
+							String siftValue,polyphenValue;
+							siftValue = polyphenValue = "";
+							if(row.getCell(summaryDataFieldColumnMapping.get("Sift_40")) != null)
+							{
+								siftValue = row.getCell(summaryDataFieldColumnMapping.get("Sift_40")).toString();
+							}
+							if(row.getCell(summaryDataFieldColumnMapping.get("PolyPhen_41")) != null)
+							{
+								polyphenValue = row.getCell(summaryDataFieldColumnMapping.get("PolyPhen_41")).toString();
+							}
+							//Check for the errors.
+							sampleId = checkSampleId(sampleId);
+							String identifier = sampleId+":"+startCoordinate1+":"+row.getCell(summaryDataFieldColumnMapping.get("HGVSc_43")).toString().trim();
+							mappingMap = dataMap.get(identifier);
+							if(mappingMap != null)
+							{
+								//Check for the errors.
+								sampleId = checkSampleId(sampleId);
+								//sampleList.add(sampleId);
+								mappingMap.put("Assay_Id",assayNameMapping.get(assay/*"FocusCLL"*/));
+								//mappingMap.put("Tumor_Sample_Barcode",sampleId);
+								mappingMap.put("Hugo_Symbol",geneName);
+								mappingMap.put("Center",CENTER);
+								mappingMap.put("NCBI_Build",NCBI_BUILD);
+								mappingMap.put("Start_Position", String.valueOf(startCoordinate1));
+								mappingMap.put("Variant_Classification",variantClassification);
+								mappingMap.put("Variant_Type",variantType);
+								mappingMap.put("Reference_Allele", geneMutationData.split(">")[0]);
+								mappingMap.put("Tumor_Seq_Allele1", geneMutationData.split(">")[1].split("/")[0]);
+								mappingMap.put("Tumor_Seq_Allele2", geneMutationData.split(">")[1].split("/")[1]);
+								mappingMap.put("dbSNP_RS", dbSNP);
+								mappingMap.put("t_alt_count", String.valueOf(altReadDepth));
+								mappingMap.put("t_ref_count", String.valueOf(readDepth-altReadDepth));
+								mappingMap.put("Chromosome", String.valueOf(chromosome));
+								if(summaryDataFieldColumnMapping.get("Variant Length_4") != null)
+								{
+									mappingMap.put("End_Position", String.valueOf(stopCoordinate));
+								}
+								mappingMap.put("Mutation_Status", "Somatic");//TODO
+								if(polyphenValue != null && !polyphenValue.equals(""))
+								{
+									mappingMap.put("Polphen_value", polyphenValue.split("\\(")[1].split("\\)")[0]);
+									mappingMap.put("Polphen_call", polyphenValue.split("\\(")[0]);
+								}
+								if(siftValue != null && !siftValue.equals(""))
+								{
+									mappingMap.put("Sift_value", siftValue.split("\\(")[1].split("\\)")[0]);
+									mappingMap.put("Sift_call", siftValue.split("\\(")[0]);
+								}
+								if(row.getCell(summaryDataFieldColumnMapping.get("HGVSp_44")) != null)
+								{
+									String HGVs = row.getCell(summaryDataFieldColumnMapping.get("HGVSp_44")).toString();
+									mappingMap.put("Amino_Acid_Change", Convert3to1AA.convert3aaTo1(HGVs));
+								}else
+								{
+									String HGVs = "";
+									mappingMap.put("Amino_Acid_Change", Convert3to1AA.convert3aaTo1(HGVs));
+								}
+							}
+							//dataMap.put(sampleId.trim()+":"+startCoordinate1+":"+row.getCell(summaryDataFieldColumnMapping.get("HGVSc_43")).toString().trim(), mappingMap);
+							//}
+						}
+					}else
+					{
+						Iterator<Cell> cellIterator = row.cellIterator();
+						Cell cell;
+						while(cellIterator.hasNext())
+						{
+							cell = cellIterator.next();
+							summaryDataFieldColumnMapping.put(cell.getStringCellValue().trim(), cell.getColumnIndex());
+						}
+
+					}
+					count++;
+				}
+
+				
 				myWorkBook.close();
 			}
 		}
@@ -516,17 +517,18 @@ public class CreateCbioportalFilesWithMetaData {
 					sampleId = checkSampleId(sampleId);
 					if(studySampleIdList.contains(sampleId))//Check for Sample in Patient Sample mapping File
 					{
-						if(sampleIdListIncancer.contains(sampleId))
+						if(sampleIdListIncancer.contains(sampleId))//Check for sample in a cancer
 						{
 							mappingMap = entry.getValue();
-							/*//Check for the positive variant cases
-							if((mappingMap.get("Sign_Out_Status") != null && mappingMap.get("Sign_Out_Status").equals("Positive")) || (mappingMap.get("Validation_Status") != null && mappingMap.get("Validation_Status").equals("Valid")))
-							{*/
-								for (String key : dataList) { 
-									pw.print((mappingMap.get(key) == null?"":mappingMap.get(key))+"\t");
-								}
-								pw.println();
-							/*}*/
+							for (String key : dataList) { 
+								pw.print((mappingMap.get(key) == null?"":mappingMap.get(key))+"\t");
+								/*if(key.equals("Sign_Out_Status") && (mappingMap.get(key) == null || mappingMap.get(key).equals("")))
+								{
+									System.out.println(mappingMap.get("Tumor_Sample_Barcode"));
+								}*/
+							}
+							pw.println();
+
 						}
 					}else{
 						//System.out.println("Sample Id not in Patient Sample mapping File "+sampleId);
@@ -629,12 +631,4 @@ public class CreateCbioportalFilesWithMetaData {
 		}
 		return sampleId;
 	}
-	
-	private static String processCosmicId(String cosmicId)
-	{
-		cosmicId = cosmicId.replace("COSM", "");
-		cosmicId = cosmicId.replace(";", ",");
-		return cosmicId;
-	}
-	
 }
