@@ -41,7 +41,8 @@ public class CheckForMissingSampleIds {
 		int count = 0;
 		Map<String, Integer> summaryDataFieldColumnMap = new HashMap<String, Integer>();
 		Set<String> s = new HashSet<String>();
-		for(int i=1;i<4;i++)
+		HashSet<String> sampleList = new HashSet<String>();
+		for(int i=0;i<5;i++)
 		{
 			mySheet = myWorkBook.getSheetAt(i);
 			count = 0;
@@ -55,12 +56,13 @@ public class CheckForMissingSampleIds {
 						
 						if(row.getCell(summaryDataFieldColumnMap.get("Patient ID")) != null && row.getCell(summaryDataFieldColumnMap.get("Sample ID")) !=null && !row.getCell(summaryDataFieldColumnMap.get("Patient ID")).equals("") && !row.getCell(summaryDataFieldColumnMap.get("Sample ID")).equals("") && row.getCell(summaryDataFieldColumnMap.get("Cancer Study")) !=null && !row.getCell(summaryDataFieldColumnMap.get("Cancer Study")).equals(""))
 						{
-							String sampleId = row.getCell(summaryDataFieldColumnMap.get("Sample ID")).toString();
-							if(missingSampleIds.contains(sampleId))
+							String sampleId = row.getCell(summaryDataFieldColumnMap.get("Sample ID")).toString().trim();
+							sampleList.add(sampleId);
+							/*if(missingSampleIds.contains(sampleId))
 							{
 								s.add(sampleId);
 								System.out.println(sampleId);
-							}
+							}*/
 						}
 						
 					}else
@@ -77,11 +79,11 @@ public class CheckForMissingSampleIds {
 				}
 			}
 		}
-		System.out.println(s.size());
+		System.out.println(sampleList.size());
 		PrintWriter pw = new PrintWriter("finalMissingSampleIds.txt");
 		for(String s1 : missingSampleIds)
 		{
-			if(!s.contains(s1))
+			if(!sampleList.contains(s1))
 			{
 				pw.println(s1);
 			}
