@@ -520,14 +520,18 @@ public class CreateCbioportalFilesWithMetaData {
 						if(sampleIdListIncancer.contains(sampleId))//Check for sample in a cancer
 						{
 							mappingMap = entry.getValue();
-							for (String key : dataList) { 
-								pw.print((mappingMap.get(key) == null?"":mappingMap.get(key))+"\t");
-								/*if(key.equals("Sign_Out_Status") && (mappingMap.get(key) == null || mappingMap.get(key).equals("")))
-								{
-									System.out.println(mappingMap.get("Tumor_Sample_Barcode"));
-								}*/
-							}
-							pw.println();
+							//Check for the positive variant cases
+							/*if((mappingMap.get("Sign_Out_Status") != null && mappingMap.get("Sign_Out_Status").equals("Positive")) || (mappingMap.get("Validation_Status") != null && mappingMap.get("Validation_Status").equals("Valid")))
+							{*/
+								for (String key : dataList) { 
+									pw.print((mappingMap.get(key) == null?"":mappingMap.get(key))+"\t");
+									/*if(key.equals("Sign_Out_Status") && (mappingMap.get(key) == null || mappingMap.get(key).equals("")))
+									{
+										System.out.println(mappingMap.get("Tumor_Sample_Barcode"));
+									}*/
+								}
+								pw.println();
+							/*}*/
 
 						}
 					}else{
