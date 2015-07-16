@@ -13,7 +13,7 @@ import java.util.Map;
 public class VCFInfoParser {
 
 	public static void main(String[] args) throws IOException {
-		/*String vcfFileName,txtFileName,resultFileName;
+		String vcfFileName,txtFileName,resultFileName;
 		vcfFileName = txtFileName = resultFileName = null;
 		for(int i=0;i<args.length;i++)
 		{
@@ -33,8 +33,8 @@ public class VCFInfoParser {
 		{
 			System.err.println("Please give valid number of arguments.");
 			System.exit(0);;
-		}*/
-		BufferedReader br = new BufferedReader(new FileReader("/home/ashish/Downloads/ensembl-tools-release-80/scripts/variant_effect_predictor/result.txt"/*txtFileName*/));
+		}
+		BufferedReader br = new BufferedReader(new FileReader(/*"/home/ashish/Downloads/ensembl-tools-release-80/scripts/variant_effect_predictor/result.txt"*/txtFileName));
 		//ArrayList<String> dataList = new ArrayList<String>(Arrays.asList("Allele","Annotation","Annotation_Impact","Gene_Name","Gene_ID","Feature_Type","Feature_ID","Transcript_BioType","Rank","HGVS.c","HGVS.p","cDNA.pos / cDNA.length","CDS.pos / CDS.length","AA.pos / AA.length","Distance"));
 		Map<String,Integer> summaryDataFieldColumnMapping = new HashMap<String,Integer>();
 		List<Map<Integer,String>> dataFieldList = new ArrayList<Map<Integer,String>>();
@@ -71,7 +71,7 @@ public class VCFInfoParser {
 		}
 		br.close();
 		Map<String, String> infoDescription = new HashMap<String,String>();
-		br = new BufferedReader(new FileReader("/home/ashish/Downloads/ensembl-tools-release-80/scripts/variant_effect_predictor/CLCBio_SU314.ann.vcf"/*vcfFileName*/));
+		br = new BufferedReader(new FileReader(/*"/home/ashish/Downloads/ensembl-tools-release-80/scripts/variant_effect_predictor/CLCBio_SU314.ann.vcf"*/vcfFileName));
 		line = br.readLine();
 		while(line != null && !line.equals("#CHROM"))
 		{
@@ -110,7 +110,7 @@ public class VCFInfoParser {
 		{
 			folder.mkdir();
 		}*/
-		PrintWriter pw = new PrintWriter("/home/ashish/Downloads/ensembl-tools-release-80/scripts/variant_effect_predictor/vcftest_vcf.txt"/*resultFileName+".txt"*/);
+		PrintWriter pw = new PrintWriter(/*"/home/ashish/Downloads/ensembl-tools-release-80/scripts/variant_effect_predictor/vcftest_vcf.txt"*/resultFileName+".txt");
 		//For Header
 		for(String s : headerList)
 		{
@@ -121,7 +121,6 @@ public class VCFInfoParser {
 				pw.print(s+"\t");
 			}else if(desc.contains("|") && !s.equals("GENEINFO"))
 			{
-				System.out.println(s);
 				String l[] = desc.split("\\|");
 				for(int j=0;j<l.length;j++)
 				{
