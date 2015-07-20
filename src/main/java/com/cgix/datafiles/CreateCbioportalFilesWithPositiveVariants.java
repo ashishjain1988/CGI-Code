@@ -439,35 +439,35 @@ public class CreateCbioportalFilesWithPositiveVariants {
 		//Printing the data to the cbioportal data files
 		List<String> sampleAssayMappingList = new ArrayList<String>();
 		PrintWriter pw;
-		for(Entry<String, Set<String>> e1 : studySampleMapping.entrySet())
+		for(Entry<String, Set<String>> e : cancerSampleMapping.entrySet())
 		{
-			Set<String> studySampleIdList = e1.getValue();
-			String cancerStudy = e1.getKey();
-			for(Entry<String, Set<String>> e : cancerSampleMapping.entrySet())
+			Set<String> sampleIdListIncancer = e.getValue();
+			String cancerCode = e.getKey();
+			for(Entry<String, Set<String>> e1 : studySampleMapping.entrySet())
 			{
-				String cancerCode = e.getKey();
-				String folderName = CBIOPORTAL+"/"+cancerStudy+"/"+cancerCode;
+				Set<String> studySampleIdList = e1.getValue();
+				String cancerStudy = e1.getKey();
+				String folderName = CBIOPORTAL+"/"+cancerCode+"/"+cancerStudy;
 				File folder = new File(CBIOPORTAL);
 				if(!folder.exists())
 				{
 					folder.mkdir();
 				}
-				folder = new File(CBIOPORTAL+"/"+cancerStudy);
+				folder = new File(CBIOPORTAL+"/"+cancerCode);
 				if(!folder.exists())
 				{
 					folder.mkdir();
 				}
-				folder = new File(CBIOPORTAL+"/"+cancerStudy+"/"+cancerCode);
+				folder = new File(CBIOPORTAL+"/"+cancerCode+"/"+cancerStudy);
 				if(!folder.exists())
 				{
 					folder.mkdir();
 				}
-				folder = new File(CBIOPORTAL+"/"+cancerStudy+"/"+cancerCode+"/case_lists");
+				folder = new File(CBIOPORTAL+"/"+cancerCode+"/"+cancerStudy+"/case_lists");
 				if(!folder.exists())
 				{
 					folder.mkdir();
 				}
-				Set<String> sampleIdListIncancer = e.getValue();
 				con = JDBCConnector.getConnection(databaseName, username, password);
 				st = con.createStatement();
 				rs = st.executeQuery("select * from type_of_cancer where type_of_cancer_id=\""+cancerCode+"\"");
@@ -506,9 +506,9 @@ public class CreateCbioportalFilesWithPositiveVariants {
 					String sampleId = entry.getKey().split(":")[0];
 					//Check for errors
 					sampleId = checkSampleId(sampleId);
-					if(studySampleIdList.contains(sampleId))//Check for Sample in Patient Sample mapping File
+					if(sampleIdListIncancer.contains(sampleId))//Check for Sample in Patient Sample mapping File
 					{
-						if(sampleIdListIncancer.contains(sampleId))//Check for sample in a cancer
+						if(studySampleIdList.contains(sampleId))//Check for sample in a cancer
 						{
 							mappingMap = entry.getValue();
 							//Check for the positive variant cases
@@ -553,9 +553,9 @@ public class CreateCbioportalFilesWithPositiveVariants {
 				pw.println("#1\t1");
 				pw.println("PATIENT_ID\tSAMPLE_ID");
 				count = 0;
-				for(String s:sampleIdListIncancer)
+				for(String s:studySampleIdList)
 				{
-					if(studySampleIdList.contains(s))
+					if(sampleIdListIncancer.contains(s))
 					{
 						s = checkSampleId(s);
 						if(samplePatientMapping.get(s)!=null)
