@@ -187,7 +187,7 @@ public class CreateCbioportalFilesWithPositiveVariants {
 		Set<String> missingPatientsIds = new HashSet<String>();
 		for(int i=0;i<files.length;i++)
 		{
-			if(files[i].isFile())
+			if(files[i].isFile() && (files[i].getName().endsWith(".xlsx") || files[i].getName().endsWith(".xls")))
 			{
 				myFile = files[i];
 				fis = new FileInputStream(myFile);
