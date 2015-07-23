@@ -63,7 +63,6 @@ public class CreateCbioportalFilesWithMetaData {
 			{
 				summarySheetFolder = argument.split("=")[1];
 			}
-			
 			else if(argument.contains("-d="))
 			{
 				databaseName = argument.split("=")[1];
@@ -110,7 +109,7 @@ public class CreateCbioportalFilesWithMetaData {
 		XSSFWorkbook myWorkBook;
 		XSSFSheet mySheet;
 		Iterator<Row> rowIterator;
-		myFile = new File(/*"/home/ashish/Downloads/Gilead_0123_Sample_list_for_NGS_new_copy.xlsx"*/metaDataFile);
+		myFile = new File(/*"/media/cgix-ngs/bioinfo/ashish/Run-Summary-Sheets/Gilead_0123_Sample_list_for_NGS_Meta_data.xlsx"*/metaDataFile);
 		fis = new FileInputStream(myFile);
 		myWorkBook = new XSSFWorkbook (fis);
 		int count = 0;
@@ -189,7 +188,7 @@ public class CreateCbioportalFilesWithMetaData {
 				"Tumor_Seq_Allele2","dbSNP_RS","t_alt_count","t_ref_count","Chromosome","Sequencer","Amino_Acid_Change","Mutation_Status","End_Position","Comments","Sign_Out_Status","Polphen_value","Polphen_call",
 				"Sift_value","Sift_call","Final_Assesment","Validation_Status","Validation_Method","Assay_Id"));
 		//Reading from Final Mutation Summary Analysis File
-		File dir = new File(/*"/home/ashish/Downloads/CGIX_CLL_Summary_Data"*/summarySheetFolder);
+		File dir = new File(/*"/media/cgix-ngs/bioinfo/ashish/Run-Summary-Sheets/Run-Summary-Sheets/"*/summarySheetFolder);
 		File [] files = dir.listFiles();
 		//Sets to find faulty files and patients Ids not in meta file.
 		Set<String> faultFiles = new HashSet<String>();
@@ -201,7 +200,7 @@ public class CreateCbioportalFilesWithMetaData {
 				myFile = files[i];
 				fis = new FileInputStream(myFile);
 				myWorkBook = new XSSFWorkbook (fis);
-				
+				//System.out.println(myFile.getName());
 				//Reading data from the RunSummary of the Excel file.
 				mySheet = myWorkBook.getSheet("RunSummary");
 				rowIterator = mySheet.iterator();
