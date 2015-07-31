@@ -105,7 +105,7 @@ public class CreateCbioportalFilesWithMetaData {
 		XSSFWorkbook myWorkBook;
 		XSSFSheet mySheet;
 		Iterator<Row> rowIterator;
-		myFile = new File(/*"/media/cgix-ngs/bioinfo/ashish/Run-Summary-Sheets/Gilead_0123_Sample_list_for_NGS_Meta_data.xlsx"*/metaDataFile);
+		myFile = new File(/*"/media/cgix-ngs/bioinfo/ashish/Myeloid_patient_list.xlsx"*/metaDataFile);
 		fis = new FileInputStream(myFile);
 		myWorkBook = new XSSFWorkbook (fis);
 		int count = 0;
@@ -134,7 +134,7 @@ public class CreateCbioportalFilesWithMetaData {
 							{
 								patientId = String.valueOf(row.getCell(summaryDataFieldColumnMap.get(Constants.PATIENT_ID)).toString());
 							}
-							String sampleId = row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE_ID)).toString();
+							String sampleId = row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE_ID)).toString().trim();
 							String cancerStudy = row.getCell(summaryDataFieldColumnMap.get(Constants.CANCER_STUDY)).toString();
 							String assayType = row.getCell(summaryDataFieldColumnMap.get(Constants.ASSAY_TYPE)).toString();
 							String cancerType = row.getCell(summaryDataFieldColumnMap.get(Constants.TYPE_OF_CANCER)).toString();
@@ -184,7 +184,7 @@ public class CreateCbioportalFilesWithMetaData {
 				Constants.TUMOR_SEQ_ALLELE_2,Constants.DBSNP_RS,Constants.T_ALT_COUNT,Constants.T_REF_COUNT,Constants.CHROMOSOME,Constants.SEQUENCER,Constants.AMINO_ACID_CHANGE,Constants.MUTATION_STATUS,Constants.END_POSITION,Constants.COMMENTS,Constants.CGIX_SIGN_OUT_STATUS,Constants.CGIX_POLYPHEN_VALUE,Constants.CGIX_POLYPHEN_CALL,
 				Constants.CGIX_SIFT_VALUE,Constants.CGIX_SIFT_CALL,Constants.CGIX_FINAL_ASSESMENT,Constants.VALIDATION_STATUS,Constants.VALIDATION_METHOD,Constants.CGIX_ASSAY_ID));
 		//Reading from Final Mutation Summary Analysis File
-		File dir = new File(/*"/media/cgix-ngs/bioinfo/ashish/Run-Summary-Sheets/Run-Summary-Sheets/"*/summarySheetFolder);
+		File dir = new File(/*"/media/cgix-ngs/bioinfo/ashish/myeloid-test/"*/summarySheetFolder);
 		File [] files = dir.listFiles();
 		//Sets to find faulty files and patients Ids not in meta file.
 		Set<String> faultFiles = new HashSet<String>();
@@ -267,7 +267,8 @@ public class CreateCbioportalFilesWithMetaData {
 									String sampleId = row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE)).toString().trim();
 									//Check for the errors.
 									sampleId = checkSampleId(sampleId);
-									String identifier = sampleId+":"+coordinate1+":"+row.getCell(summaryDataFieldColumnMap.get(Constants.BASE_CHANGE)).toString().trim();
+									String hgvSC = row.getCell(summaryDataFieldColumnMap.get(Constants.BASE_CHANGE)) == null?"":row.getCell(summaryDataFieldColumnMap.get(Constants.BASE_CHANGE)).toString().trim();
+									String identifier = sampleId+":"+coordinate1+":"+hgvSC;
 									mappingMap = new HashMap<String, String>();
 									/*if(sampleId.equals("33412_002728"))
 									System.out.println(sampleId+ " "+myFile.getName());*/
@@ -333,8 +334,8 @@ public class CreateCbioportalFilesWithMetaData {
 					{
 						if(row.getCell(summaryDataFieldColumnMapping.get(Constants.SAMPLE)) != null)
 						{
-							String sampleId = row.getCell(summaryDataFieldColumnMapping.get(Constants.SAMPLE)).toString();
-							String variantClassification = row.getCell(summaryDataFieldColumnMapping.get(Constants.VARIANT_CONSEQUENCE)).toString();
+							String sampleId = row.getCell(summaryDataFieldColumnMapping.get(Constants.SAMPLE)).toString().trim();
+							String variantClassification = row.getCell(summaryDataFieldColumnMapping.get(Constants.VARIANT_CONSEQUENCE)) == null?"":row.getCell(summaryDataFieldColumnMapping.get(Constants.VARIANT_CONSEQUENCE)).toString();
 							/*if(!sampleId.equalsIgnoreCase("Positive") && !sampleId.startsWith("R") && !variantClassification.contains("intron"))//Check for Controls and Repeats. 
 							{*/
 							String geneName = row.getCell(summaryDataFieldColumnMapping.get(Constants.GENE_NAME)).toString();
@@ -351,9 +352,13 @@ public class CreateCbioportalFilesWithMetaData {
 							int readDepth = readDepth1.intValue();
 							Double altReadDepth1 = row.getCell(summaryDataFieldColumnMapping.get(Constants.ALT_READ_DEPTH)).getNumericCellValue();
 							int altReadDepth = altReadDepth1.intValue();
-
-							Double chrom = row.getCell(summaryDataFieldColumnMapping.get(Constants.CHR)).getNumericCellValue();
-							int chromosome = chrom.intValue();
+							String chromosome = "";
+							try {
+								Double chrom = row.getCell(summaryDataFieldColumnMapping.get(Constants.CHR)).getNumericCellValue();
+								chromosome = String.valueOf(chrom.intValue());
+							} catch (IllegalStateException e) {
+								chromosome = row.getCell(summaryDataFieldColumnMapping.get(Constants.CHR)).toString();
+							}
 							String variantType = row.getCell(summaryDataFieldColumnMapping.get(Constants.VARIANT_TYPE_CGI)).toString();
 							String dbSNP = "";
 							if(row.getCell(summaryDataFieldColumnMapping.get(Constants.DBSNP)) != null)
@@ -372,7 +377,8 @@ public class CreateCbioportalFilesWithMetaData {
 							}
 							//Check for the errors.
 							sampleId = checkSampleId(sampleId);
-							String identifier = sampleId+":"+startCoordinate1+":"+row.getCell(summaryDataFieldColumnMapping.get(Constants.BASE_CHANGE)).toString().trim();
+							String hgvSC = row.getCell(summaryDataFieldColumnMapping.get(Constants.BASE_CHANGE)) == null?"":row.getCell(summaryDataFieldColumnMapping.get(Constants.BASE_CHANGE)).toString().trim();
+							String identifier = sampleId+":"+startCoordinate1+":"+hgvSC;
 							mappingMap = dataMap.get(identifier);
 							if(mappingMap != null)
 							{
@@ -624,10 +630,10 @@ public class CreateCbioportalFilesWithMetaData {
 		{
 			sampleId = sampleId.split("\\.txt")[0];
 		}
-		if(!sampleId.startsWith("M") && sampleId.contains("-"))
+		/*if(!sampleId.startsWith("M") && sampleId.contains("-"))
 		{
 			sampleId = sampleId.replace("-", "_");
-		}
+		}*/
 		return sampleId;
 	}
 }

@@ -25,10 +25,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class CreateCbioportalFilesWithPositiveVariants {
 
-	public static String CENTER = "CGI_Rutherford";
-	public static String NCBI_BUILD = "GRCh37";
-	public static String year = "2015";
-	public static String CBIOPORTAL = "cbioportal";
 	/*public static final Map<String, String> Mutation_Type_Map = new HashMap<String, String>(){{
 		put("missense_variant","missense_mutation");
 		put("","nonsense_mutation");
@@ -54,7 +50,6 @@ public class CreateCbioportalFilesWithPositiveVariants {
 			{
 				summarySheetFolder = argument.split("=")[1];
 			}
-			
 			else if(argument.contains("-d="))
 			{
 				databaseName = argument.split("=")[1];
@@ -101,7 +96,7 @@ public class CreateCbioportalFilesWithPositiveVariants {
 		XSSFWorkbook myWorkBook;
 		XSSFSheet mySheet;
 		Iterator<Row> rowIterator;
-		myFile = new File(/*"/home/ashish/Downloads/Gilead_0123_Sample_list_for_NGS_new_copy.xlsx"*/metaDataFile);
+		myFile = new File(/*"/media/cgix-ngs/bioinfo/ashish/Myeloid_patient_list.xlsx"*/metaDataFile);
 		fis = new FileInputStream(myFile);
 		myWorkBook = new XSSFWorkbook (fis);
 		int count = 0;
@@ -119,21 +114,21 @@ public class CreateCbioportalFilesWithPositiveVariants {
 					if(count != 0)
 					{
 						
-						if(row.getCell(summaryDataFieldColumnMap.get("Patient ID")) != null && row.getCell(summaryDataFieldColumnMap.get("Sample ID")) !=null && !row.getCell(summaryDataFieldColumnMap.get("Patient ID")).equals("") && !row.getCell(summaryDataFieldColumnMap.get("Sample ID")).equals("") && row.getCell(summaryDataFieldColumnMap.get("Cancer Study")) !=null && !row.getCell(summaryDataFieldColumnMap.get("Cancer Study")).equals(""))
+						if(row.getCell(summaryDataFieldColumnMap.get(Constants.PATIENT_ID)) != null && row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE_ID)) !=null && !row.getCell(summaryDataFieldColumnMap.get(Constants.PATIENT_ID)).equals("") && !row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE_ID)).equals("") && row.getCell(summaryDataFieldColumnMap.get(Constants.CANCER_STUDY)) !=null && !row.getCell(summaryDataFieldColumnMap.get(Constants.CANCER_STUDY)).equals(""))
 						{
 							String patientId;
-							if(row.getCell(summaryDataFieldColumnMap.get("Patient ID")).getCellType() == Cell.CELL_TYPE_NUMERIC)
+							if(row.getCell(summaryDataFieldColumnMap.get(Constants.PATIENT_ID)).getCellType() == Cell.CELL_TYPE_NUMERIC)
 							{
-								Double patientId1 = row.getCell(summaryDataFieldColumnMap.get("Patient ID")).getNumericCellValue();
+								Double patientId1 = row.getCell(summaryDataFieldColumnMap.get(Constants.PATIENT_ID)).getNumericCellValue();
 								patientId = String.valueOf(patientId1.intValue());
 							}else
 							{
-								patientId = String.valueOf(row.getCell(summaryDataFieldColumnMap.get("Patient ID")).toString());
+								patientId = String.valueOf(row.getCell(summaryDataFieldColumnMap.get(Constants.PATIENT_ID)).toString());
 							}
-							String sampleId = row.getCell(summaryDataFieldColumnMap.get("Sample ID")).toString();
-							String cancerStudy = row.getCell(summaryDataFieldColumnMap.get("Cancer Study")).toString();
-							String assayType = row.getCell(summaryDataFieldColumnMap.get("Assay Type")).toString();
-							String cancerType = row.getCell(summaryDataFieldColumnMap.get("Type of cancer")).toString();
+							String sampleId = row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE_ID)).toString().trim();
+							String cancerStudy = row.getCell(summaryDataFieldColumnMap.get(Constants.CANCER_STUDY)).toString();
+							String assayType = row.getCell(summaryDataFieldColumnMap.get(Constants.ASSAY_TYPE)).toString();
+							String cancerType = row.getCell(summaryDataFieldColumnMap.get(Constants.TYPE_OF_CANCER)).toString();
 							if(cancerSampleMapping.get(cancerType) != null)
 							{
 								sampleIdList = cancerSampleMapping.get(cancerType);
@@ -145,7 +140,7 @@ public class CreateCbioportalFilesWithPositiveVariants {
 							cancerSampleMapping.put(cancerType, sampleIdList);//Cancer Sample Mapping
 							samplePatientMapping.put(sampleId, patientId);//Patient Sample Mapping
 							dataMapping = new HashMap<String, String>();
-							dataMapping.put("Assay Type", assayType);
+							dataMapping.put(Constants.ASSAY_TYPE, assayType);
 							sampleDataMapping.put(sampleId, dataMapping);//Sample Meta Data mapping
 							if(studySampleMapping.get(cancerStudy) != null)
 							{
@@ -176,11 +171,11 @@ public class CreateCbioportalFilesWithPositiveVariants {
 		
 		Map<String, Map<String, String>> dataMap = new HashMap<String, Map<String,String>>();
 		Map<String, String> mappingMap;
-		ArrayList<String> dataList = new ArrayList<String>(Arrays.asList("Tumor_Sample_Barcode", "Hugo_Symbol", "Center","NCBI_Build","Start_Position","Variant_Classification","Variant_Type","Reference_Allele","Tumor_Seq_Allele1",
-				"Tumor_Seq_Allele2","dbSNP_RS","t_alt_count","t_ref_count","Chromosome","Sequencer","Amino_Acid_Change","Mutation_Status","End_Position","Comments","Sign_Out_Status","Polphen_value","Polphen_call",
-				"Sift_value","Sift_call","Final_Assesment","Validation_Status","Validation_Method","Assay_Id"));
+		ArrayList<String> dataList = new ArrayList<String>(Arrays.asList(Constants.TUMOR_SAMPLE_BARCODE, Constants.HUGO_SYMBOL, Constants.CENTER,Constants.NCBI_BUILD,Constants.START_POSITION,Constants.VARIANT_CLASSIFICATION,Constants.VARIANT_TYPE,Constants.REFERENCE_ALLELE,Constants.TUMOR_SEQ_ALLELE_1,
+				Constants.TUMOR_SEQ_ALLELE_2,Constants.DBSNP_RS,Constants.T_ALT_COUNT,Constants.T_REF_COUNT,Constants.CHROMOSOME,Constants.SEQUENCER,Constants.AMINO_ACID_CHANGE,Constants.MUTATION_STATUS,Constants.END_POSITION,Constants.COMMENTS,Constants.CGIX_SIGN_OUT_STATUS,Constants.CGIX_POLYPHEN_VALUE,Constants.CGIX_POLYPHEN_CALL,
+				Constants.CGIX_SIFT_VALUE,Constants.CGIX_SIFT_CALL,Constants.CGIX_FINAL_ASSESMENT,Constants.VALIDATION_STATUS,Constants.VALIDATION_METHOD,Constants.CGIX_ASSAY_ID));
 		//Reading from Final Mutation Summary Analysis File
-		File dir = new File(/*"/home/ashish/Downloads/CGIX_CLL_Summary_Data"*/summarySheetFolder);
+		File dir = new File(/*"/media/cgix-ngs/bioinfo/ashish/myeloid-test/"*/summarySheetFolder);
 		File [] files = dir.listFiles();
 		//Sets to find faulty files and patients Ids not in meta file.
 		Set<String> faultFiles = new HashSet<String>();
@@ -192,9 +187,9 @@ public class CreateCbioportalFilesWithPositiveVariants {
 				myFile = files[i];
 				fis = new FileInputStream(myFile);
 				myWorkBook = new XSSFWorkbook (fis);
-				
+				//System.out.println(myFile.getName());
 				//Reading data from the RunSummary of the Excel file.
-				mySheet = myWorkBook.getSheet("RunSummary");
+				mySheet = myWorkBook.getSheet(Constants.RUN_SUMMARY);
 				rowIterator = mySheet.iterator();
 				boolean getSequencer = true;
 				String SEQUENCER = "";
@@ -203,7 +198,7 @@ public class CreateCbioportalFilesWithPositiveVariants {
 				while (rowIterator.hasNext()) {
 
 					Row row = rowIterator.next();
-					if(getSequencer && row.getCell(3) != null && row.getCell(3).toString() != "" && row.getCell(3).toString().startsWith("Run ID:"))
+					if(getSequencer && row.getCell(3) != null && row.getCell(3).toString() != "" && row.getCell(3).toString().startsWith(Constants.RUN_ID))
 					{
 						RunId = row.getCell(3).toString();
 						SEQUENCER = row.getCell(3).toString().split("_")[1];
@@ -217,7 +212,7 @@ public class CreateCbioportalFilesWithPositiveVariants {
 					Cell cell1 = row.getCell(1);
 					Cell cell2 = row.getCell(2);
 					//Condition to check the header in the file.
-					if(getHeader && cell != null && cell1 != null && cell2!= null && cell.getStringCellValue().equals("Sample") && cell1.getStringCellValue().equals("Gene") && cell2.getStringCellValue().equals("Coordinate_3"))
+					if(getHeader && cell != null && cell1 != null && cell2!= null && cell.getStringCellValue().equals(Constants.SAMPLE) && cell1.getStringCellValue().equals(Constants.GENE) && cell2.getStringCellValue().equals(Constants.START_COORDINATE))
 					{
 						Iterator<Cell> cellIterator = row.cellIterator();
 						while(cellIterator.hasNext())
@@ -231,12 +226,12 @@ public class CreateCbioportalFilesWithPositiveVariants {
 					{
 						if(!getHeader)
 						{
-							if(row.getCell(summaryDataFieldColumnMap.get("Sample")) != null && !row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().equals("") && !row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().trim().contains("Positive") && !row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().trim().startsWith("R"))
+							if(row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE)) != null && !row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE)).toString().equals("") && !row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE)).toString().trim().contains("Positive") && !row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE)).toString().trim().startsWith("R"))
 							{
 								//Condition to get the negative samples from the summary sheet.
 								if(row.getCell(1) != null && row.getCell(1).toString().equalsIgnoreCase("Negative"))
 								{
-									String sampleId = row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().trim();
+									String sampleId = row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE)).toString().trim();
 									//Check for the errors.
 									sampleId = checkSampleId(sampleId);
 									dataMapping = sampleDataMapping.get(sampleId);
@@ -244,8 +239,8 @@ public class CreateCbioportalFilesWithPositiveVariants {
 									{
 										if(!RunId.equals(""))
 										{
-											dataMapping.put("Run Id", RunId.split(":")[1]);
-											dataMapping.put("Run Date",RunId.split(":")[1].split("_")[0]);
+											dataMapping.put(Constants.RUN_ID, RunId.split(":")[1]);
+											dataMapping.put(Constants.RUN_DATE,RunId.split(":")[1].split("_")[0]);
 											sampleDataMapping.put(sampleId, dataMapping);
 										}
 									}else
@@ -256,39 +251,40 @@ public class CreateCbioportalFilesWithPositiveVariants {
 								}
 
 								//Condition to uniquely map the rows in the Run Summary sheet with the rows of Summary sheet
-								if(row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")) != null && row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")).getCellType() == Cell.CELL_TYPE_NUMERIC && row.getCell(summaryDataFieldColumnMap.get("HGVSc_43")) != null)
+								if(row.getCell(summaryDataFieldColumnMap.get(Constants.START_COORDINATE)) != null && row.getCell(summaryDataFieldColumnMap.get(Constants.START_COORDINATE)).getCellType() == Cell.CELL_TYPE_NUMERIC && row.getCell(summaryDataFieldColumnMap.get(Constants.BASE_CHANGE)) != null)
 								{
-									Double coordinate = row.getCell(summaryDataFieldColumnMap.get("Coordinate_3")).getNumericCellValue();
+									Double coordinate = row.getCell(summaryDataFieldColumnMap.get(Constants.START_COORDINATE)).getNumericCellValue();
 									int coordinate1 = coordinate.intValue();
-									String sampleId = row.getCell(summaryDataFieldColumnMap.get("Sample")).toString().trim();
+									String sampleId = row.getCell(summaryDataFieldColumnMap.get(Constants.SAMPLE)).toString().trim();
 									//Check for the errors.
 									sampleId = checkSampleId(sampleId);
-									String identifier = sampleId+":"+coordinate1+":"+row.getCell(summaryDataFieldColumnMap.get("HGVSc_43")).toString().trim();
+									String hgvSC = row.getCell(summaryDataFieldColumnMap.get(Constants.BASE_CHANGE)) == null?"":row.getCell(summaryDataFieldColumnMap.get(Constants.BASE_CHANGE)).toString().trim();
+									String identifier = sampleId+":"+coordinate1+":"+hgvSC;
 									mappingMap = new HashMap<String, String>();
 									/*if(sampleId.equals("33412_002728"))
 									System.out.println(sampleId+ " "+myFile.getName());*/
-									mappingMap.put("Tumor_Sample_Barcode",sampleId);
-									if(row.getCell(summaryDataFieldColumnMap.get("Confirmation")) != null && !row.getCell(summaryDataFieldColumnMap.get("Confirmation")).toString().equals(""))
+									mappingMap.put(Constants.TUMOR_SAMPLE_BARCODE,sampleId);
+									if(row.getCell(summaryDataFieldColumnMap.get(Constants.CONFIRMATION)) != null && !row.getCell(summaryDataFieldColumnMap.get(Constants.CONFIRMATION)).toString().equals(""))
 									{
-										String validation = row.getCell(summaryDataFieldColumnMap.get("Confirmation")).toString();
-										mappingMap.put("Validation_Method", validation.split("_")[0]);
-										mappingMap.put("Validation_Status", validation.split("_")[1]);
+										String validation = row.getCell(summaryDataFieldColumnMap.get(Constants.CONFIRMATION)).toString();
+										mappingMap.put(Constants.VALIDATION_METHOD, validation.split("_")[0]);
+										mappingMap.put(Constants.VALIDATION_STATUS, validation.split("_")[1]);
 									}
-									if(row.getCell(summaryDataFieldColumnMap.get("Comments")) != null)
+									if(row.getCell(summaryDataFieldColumnMap.get(Constants.COMMENTS)) != null)
 									{
-										mappingMap.put("Comments", row.getCell(summaryDataFieldColumnMap.get("Comments")).toString());
+										mappingMap.put(Constants.COMMENTS, row.getCell(summaryDataFieldColumnMap.get(Constants.COMMENTS)).toString());
 									}
-									if(row.getCell(summaryDataFieldColumnMap.get("FINAL CALL")) != null)
+									if(row.getCell(summaryDataFieldColumnMap.get(Constants.FINAL_CALL)) != null)
 									{
-										mappingMap.put("Sign_Out_Status", row.getCell(summaryDataFieldColumnMap.get("FINAL CALL")).toString().trim());
+										mappingMap.put(Constants.CGIX_SIGN_OUT_STATUS, row.getCell(summaryDataFieldColumnMap.get(Constants.FINAL_CALL)).toString().trim());
 
 									}
-									if(row.getCell(summaryDataFieldColumnMap.get("Functional Impact")) != null)
+									if(row.getCell(summaryDataFieldColumnMap.get(Constants.FUNCTIONAL_IMPACT)) != null)
 									{
-										Cell localCell = row.getCell(summaryDataFieldColumnMap.get("Functional Impact"));
+										Cell localCell = row.getCell(summaryDataFieldColumnMap.get(Constants.FUNCTIONAL_IMPACT));
 										/*if(!(localCell.toString().equals("Benign") || localCell.toString().equals("UNS") || localCell.toString().equals("Pathogenic") || localCell.toString().equals("")))
 											faultFiles.add(myFile.getName());*/
-										mappingMap.put("Final_Assesment", localCell.toString());
+										mappingMap.put(Constants.CGIX_FINAL_ASSESMENT, localCell.toString());
 									}
 
 									dataMapping = sampleDataMapping.get(sampleId);
@@ -296,8 +292,8 @@ public class CreateCbioportalFilesWithPositiveVariants {
 									{
 										if(!RunId.equals(""))
 										{
-											dataMapping.put("Run Id", RunId.split(":")[1]);
-											dataMapping.put("Run Date",RunId.split(":")[1].split("_")[0]);
+											dataMapping.put(Constants.RUN_ID, RunId.split(":")[1]);
+											dataMapping.put(Constants.RUN_DATE,RunId.split(":")[1].split("_")[0]);
 											sampleDataMapping.put(sampleId, dataMapping);
 										}
 									}
@@ -311,7 +307,7 @@ public class CreateCbioportalFilesWithPositiveVariants {
 				for(Entry<String,Map<String, String>> entry : dataMap.entrySet())
 				{
 					mappingMap = entry.getValue();
-					mappingMap.put("Sequencer", SEQUENCER);
+					mappingMap.put(Constants.SEQUENCER, SEQUENCER);
 				}
 				
 				//Reading data from the SummarySheet of the Excel file.
@@ -327,95 +323,100 @@ public class CreateCbioportalFilesWithPositiveVariants {
 					// For each row, iterate through each columns
 					if(count !=0)
 					{
-						if(row.getCell(summaryDataFieldColumnMapping.get("Sample")) != null)
+						if(row.getCell(summaryDataFieldColumnMapping.get(Constants.SAMPLE)) != null)
 						{
-							String sampleId = row.getCell(summaryDataFieldColumnMapping.get("Sample")).toString();
-							String variantClassification = row.getCell(summaryDataFieldColumnMapping.get("Consequence_29")).toString();
+							String sampleId = row.getCell(summaryDataFieldColumnMapping.get(Constants.SAMPLE)).toString().trim();
+							String variantClassification = row.getCell(summaryDataFieldColumnMapping.get(Constants.VARIANT_CONSEQUENCE)) == null?"":row.getCell(summaryDataFieldColumnMapping.get(Constants.VARIANT_CONSEQUENCE)).toString();
 							/*if(!sampleId.equalsIgnoreCase("Positive") && !sampleId.startsWith("R") && !variantClassification.contains("intron"))//Check for Controls and Repeats. 
 							{*/
-							String geneName = row.getCell(summaryDataFieldColumnMapping.get("Gene_0")).toString();
-							Double startCoordinate = row.getCell(summaryDataFieldColumnMapping.get("Coordinate_3")).getNumericCellValue();
+							String geneName = row.getCell(summaryDataFieldColumnMapping.get(Constants.GENE_NAME)).toString();
+							Double startCoordinate = row.getCell(summaryDataFieldColumnMapping.get(Constants.START_COORDINATE)).getNumericCellValue();
 							int startCoordinate1 = startCoordinate.intValue();
 							int stopCoordinate = 0;
-							if(summaryDataFieldColumnMapping.get("Variant Length_4") != null)
+							if(summaryDataFieldColumnMapping.get(Constants.VARIANT_LENGTH) != null)
 							{
-								Double variantLength = row.getCell(summaryDataFieldColumnMapping.get("Variant Length_4")).getNumericCellValue();
+								Double variantLength = row.getCell(summaryDataFieldColumnMapping.get(Constants.VARIANT_LENGTH)).getNumericCellValue();
 								stopCoordinate = startCoordinate1 + variantLength.intValue();
 							}
-							String geneMutationData = row.getCell(summaryDataFieldColumnMapping.get("Variant_1")).toString();
-							Double readDepth1 = row.getCell(summaryDataFieldColumnMapping.get("Read Depth_14")).getNumericCellValue();
+							String geneMutationData = row.getCell(summaryDataFieldColumnMapping.get(Constants.VARIANT)).toString();
+							Double readDepth1 = row.getCell(summaryDataFieldColumnMapping.get(Constants.READ_DEPTH)).getNumericCellValue();
 							int readDepth = readDepth1.intValue();
-							Double altReadDepth1 = row.getCell(summaryDataFieldColumnMapping.get("Alt Read Depth_15")).getNumericCellValue();
+							Double altReadDepth1 = row.getCell(summaryDataFieldColumnMapping.get(Constants.ALT_READ_DEPTH)).getNumericCellValue();
 							int altReadDepth = altReadDepth1.intValue();
-
-							Double chrom = row.getCell(summaryDataFieldColumnMapping.get("Chr_2")).getNumericCellValue();
-							int chromosome = chrom.intValue();
-							String variantType = row.getCell(summaryDataFieldColumnMapping.get("Type_5")).toString();
+							String chromosome = "";
+							try {
+								Double chrom = row.getCell(summaryDataFieldColumnMapping.get(Constants.CHR)).getNumericCellValue();
+								chromosome = String.valueOf(chrom.intValue());
+							} catch (IllegalStateException e) {
+								chromosome = row.getCell(summaryDataFieldColumnMapping.get(Constants.CHR)).toString();
+							}
+							String variantType = row.getCell(summaryDataFieldColumnMapping.get(Constants.VARIANT_TYPE_CGI)).toString();
 							String dbSNP = "";
-							if(row.getCell(summaryDataFieldColumnMapping.get("dbSNP ID_45")) != null)
+							if(row.getCell(summaryDataFieldColumnMapping.get(Constants.DBSNP)) != null)
 							{
-								dbSNP = row.getCell(summaryDataFieldColumnMapping.get("dbSNP ID_45")).toString();
+								dbSNP = row.getCell(summaryDataFieldColumnMapping.get(Constants.DBSNP)).toString();
 							}
 							String siftValue,polyphenValue;
 							siftValue = polyphenValue = "";
-							if(row.getCell(summaryDataFieldColumnMapping.get("Sift_40")) != null)
+							if(row.getCell(summaryDataFieldColumnMapping.get(Constants.SIFT)) != null)
 							{
-								siftValue = row.getCell(summaryDataFieldColumnMapping.get("Sift_40")).toString();
+								siftValue = row.getCell(summaryDataFieldColumnMapping.get(Constants.SIFT)).toString();
 							}
-							if(row.getCell(summaryDataFieldColumnMapping.get("PolyPhen_41")) != null)
+							if(row.getCell(summaryDataFieldColumnMapping.get(Constants.POLYPHEN)) != null)
 							{
-								polyphenValue = row.getCell(summaryDataFieldColumnMapping.get("PolyPhen_41")).toString();
+								polyphenValue = row.getCell(summaryDataFieldColumnMapping.get(Constants.POLYPHEN)).toString();
 							}
 							//Check for the errors.
 							sampleId = checkSampleId(sampleId);
-							String identifier = sampleId+":"+startCoordinate1+":"+row.getCell(summaryDataFieldColumnMapping.get("HGVSc_43")).toString().trim();
+							String hgvSC = row.getCell(summaryDataFieldColumnMapping.get(Constants.BASE_CHANGE)) == null?"":row.getCell(summaryDataFieldColumnMapping.get(Constants.BASE_CHANGE)).toString().trim();
+							String identifier = sampleId+":"+startCoordinate1+":"+hgvSC;
 							mappingMap = dataMap.get(identifier);
 							if(mappingMap != null)
 							{
 								//Check for the errors.
 								sampleId = checkSampleId(sampleId);
 								//sampleList.add(sampleId);
-								mappingMap.put("Assay_Id",assayNameMapping.get(assay/*"FocusCLL"*/));
-								//mappingMap.put("Tumor_Sample_Barcode",sampleId);
-								mappingMap.put("Hugo_Symbol",geneName);
-								mappingMap.put("Center",CENTER);
-								mappingMap.put("NCBI_Build",NCBI_BUILD);
-								mappingMap.put("Start_Position", String.valueOf(startCoordinate1));
-								mappingMap.put("Variant_Classification",variantClassification);
-								mappingMap.put("Variant_Type",variantType);
-								mappingMap.put("Reference_Allele", geneMutationData.split(">")[0]);
-								mappingMap.put("Tumor_Seq_Allele1", geneMutationData.split(">")[1].split("/")[0]);
-								mappingMap.put("Tumor_Seq_Allele2", geneMutationData.split(">")[1].split("/")[1]);
-								mappingMap.put("dbSNP_RS", dbSNP);
-								mappingMap.put("t_alt_count", String.valueOf(altReadDepth));
-								mappingMap.put("t_ref_count", String.valueOf(readDepth-altReadDepth));
-								mappingMap.put("Chromosome", String.valueOf(chromosome));
-								if(summaryDataFieldColumnMapping.get("Variant Length_4") != null)
+								mappingMap.put(Constants.CGIX_ASSAY_ID,assayNameMapping.get(assay/*"FocusCLL"*/));
+								//mappingMap.put(Constants.TUMOR_SAMPLE_BARCODE,sampleId);
+								mappingMap.put(Constants.HUGO_SYMBOL,geneName);
+								mappingMap.put(Constants.CENTER,Constants.CENTER_CGI);
+								mappingMap.put(Constants.NCBI_BUILD,Constants.NCBI_BUILD_CGI);
+								mappingMap.put(Constants.START_POSITION, String.valueOf(startCoordinate1));
+								mappingMap.put(Constants.VARIANT_CLASSIFICATION,variantClassification);
+								mappingMap.put(Constants.VARIANT_TYPE,variantType);
+								mappingMap.put(Constants.REFERENCE_ALLELE, geneMutationData.split(">")[0]);
+								mappingMap.put(Constants.TUMOR_SEQ_ALLELE_1, geneMutationData.split(">")[1].split("/")[0]);
+								mappingMap.put(Constants.TUMOR_SEQ_ALLELE_2, geneMutationData.split(">")[1].split("/")[1]);
+								mappingMap.put(Constants.DBSNP_RS, dbSNP);
+								mappingMap.put(Constants.T_ALT_COUNT, String.valueOf(altReadDepth));
+								mappingMap.put(Constants.T_REF_COUNT, String.valueOf(readDepth-altReadDepth));
+								mappingMap.put(Constants.CHROMOSOME, String.valueOf(chromosome));
+								if(summaryDataFieldColumnMapping.get(Constants.VARIANT_LENGTH) != null)
 								{
-									mappingMap.put("End_Position", String.valueOf(stopCoordinate));
+									mappingMap.put(Constants.END_POSITION, String.valueOf(stopCoordinate));
 								}
-								mappingMap.put("Mutation_Status", "Somatic");//TODO
+								mappingMap.put(Constants.MUTATION_STATUS, "Somatic");//TODO
 								if(polyphenValue != null && !polyphenValue.equals(""))
 								{
-									mappingMap.put("Polphen_value", polyphenValue.split("\\(")[1].split("\\)")[0]);
-									mappingMap.put("Polphen_call", polyphenValue.split("\\(")[0]);
+									mappingMap.put(Constants.CGIX_POLYPHEN_VALUE, polyphenValue.split("\\(")[1].split("\\)")[0]);
+									mappingMap.put(Constants.CGIX_POLYPHEN_CALL, polyphenValue.split("\\(")[0]);
 								}
 								if(siftValue != null && !siftValue.equals(""))
 								{
-									mappingMap.put("Sift_value", siftValue.split("\\(")[1].split("\\)")[0]);
-									mappingMap.put("Sift_call", siftValue.split("\\(")[0]);
+									mappingMap.put(Constants.CGIX_SIFT_VALUE, siftValue.split("\\(")[1].split("\\)")[0]);
+									mappingMap.put(Constants.CGIX_SIFT_CALL, siftValue.split("\\(")[0]);
 								}
-								if(row.getCell(summaryDataFieldColumnMapping.get("HGVSp_44")) != null)
+								if(row.getCell(summaryDataFieldColumnMapping.get(Constants.AMINO_ACID_CHANGE_CGIX)) != null)
 								{
-									String HGVs = row.getCell(summaryDataFieldColumnMapping.get("HGVSp_44")).toString();
-									mappingMap.put("Amino_Acid_Change", Convert3to1AA.convert3aaTo1(HGVs));
+									String HGVs = row.getCell(summaryDataFieldColumnMapping.get(Constants.AMINO_ACID_CHANGE_CGIX)).toString();
+									mappingMap.put(Constants.AMINO_ACID_CHANGE, Convert3to1AA.convert3aaTo1(HGVs));
 								}else
 								{
 									String HGVs = "";
-									mappingMap.put("Amino_Acid_Change", Convert3to1AA.convert3aaTo1(HGVs));
+									mappingMap.put(Constants.AMINO_ACID_CHANGE, Convert3to1AA.convert3aaTo1(HGVs));
 								}
 							}
-							//dataMap.put(sampleId.trim()+":"+startCoordinate1+":"+row.getCell(summaryDataFieldColumnMapping.get("HGVSc_43")).toString().trim(), mappingMap);
+							//dataMap.put(sampleId.trim()+":"+startCoordinate1+":"+row.getCell(summaryDataFieldColumnMapping.get(Constants.BASE_CHANGE)).toString().trim(), mappingMap);
 							//}
 						}
 					}else
@@ -447,23 +448,23 @@ public class CreateCbioportalFilesWithPositiveVariants {
 			{
 				Set<String> studySampleIdList = e1.getValue();
 				String cancerStudy = e1.getKey();
-				String folderName = CBIOPORTAL+"/"+cancerCode+"/"+cancerStudy;
-				File folder = new File(CBIOPORTAL);
+				String folderName = Constants.CBIOPORTAL+"/"+cancerCode+"/"+cancerStudy;
+				File folder = new File(Constants.CBIOPORTAL);
 				if(!folder.exists())
 				{
 					folder.mkdir();
 				}
-				folder = new File(CBIOPORTAL+"/"+cancerCode);
+				folder = new File(Constants.CBIOPORTAL+"/"+cancerCode);
 				if(!folder.exists())
 				{
 					folder.mkdir();
 				}
-				folder = new File(CBIOPORTAL+"/"+cancerCode+"/"+cancerStudy);
+				folder = new File(Constants.CBIOPORTAL+"/"+cancerCode+"/"+cancerStudy);
 				if(!folder.exists())
 				{
 					folder.mkdir();
 				}
-				folder = new File(CBIOPORTAL+"/"+cancerCode+"/"+cancerStudy+"/case_lists");
+				folder = new File(Constants.CBIOPORTAL+"/"+cancerCode+"/"+cancerStudy+"/case_lists");
 				if(!folder.exists())
 				{
 					folder.mkdir();
@@ -512,13 +513,13 @@ public class CreateCbioportalFilesWithPositiveVariants {
 						{
 							mappingMap = entry.getValue();
 							//Check for the positive variant cases
-							if((mappingMap.get("Sign_Out_Status") != null && mappingMap.get("Sign_Out_Status").equals("Positive")) || (mappingMap.get("Validation_Status") != null && mappingMap.get("Validation_Status").equals("Valid")))
+							if((mappingMap.get(Constants.CGIX_SIGN_OUT_STATUS) != null && mappingMap.get(Constants.CGIX_SIGN_OUT_STATUS).equals("Positive")) || (mappingMap.get(Constants.VALIDATION_STATUS) != null && mappingMap.get(Constants.VALIDATION_STATUS).equals("Valid")))
 							{
 								for (String key : dataList) { 
 									pw.print((mappingMap.get(key) == null?"":mappingMap.get(key))+"\t");
-									/*if(key.equals("Sign_Out_Status") && (mappingMap.get(key) == null || mappingMap.get(key).equals("")))
+									/*if(key.equals(Constants.CGIX_SIGN_OUT_STATUS) && (mappingMap.get(key) == null || mappingMap.get(key).equals("")))
 									{
-										System.out.println(mappingMap.get("Tumor_Sample_Barcode"));
+										System.out.println(mappingMap.get(Constants.TUMOR_SAMPLE_BARCODE));
 									}*/
 								}
 								pw.println();
@@ -609,7 +610,7 @@ public class CreateCbioportalFilesWithPositiveVariants {
 			String sampleId = s.trim();
 			sampleId = checkSampleId(sampleId);
 			dataMapping = sampleDataMapping.get(sampleId);
-			pw.println(sampleId+"\t"+dataMapping.get("Assay Type")+"\t"+(dataMapping.get("Run Date") == null?"":dataMapping.get("Run Date"))+"\t"+(dataMapping.get("Run Id")==null?"":dataMapping.get("Run Id")));
+			pw.println(sampleId+"\t"+dataMapping.get(Constants.ASSAY_TYPE)+"\t"+(dataMapping.get(Constants.RUN_DATE) == null?"":dataMapping.get(Constants.RUN_DATE))+"\t"+(dataMapping.get(Constants.RUN_ID)==null?"":dataMapping.get(Constants.RUN_ID)));
 		}
 		pw.close();
 	}
@@ -620,10 +621,10 @@ public class CreateCbioportalFilesWithPositiveVariants {
 		{
 			sampleId = sampleId.split("\\.txt")[0];
 		}
-		if(!sampleId.startsWith("M") && sampleId.contains("-"))
+		/*if(!sampleId.startsWith("M") && sampleId.contains("-"))
 		{
 			sampleId = sampleId.replace("-", "_");
-		}
+		}*/
 		return sampleId;
 	}
 }
