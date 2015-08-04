@@ -96,7 +96,7 @@ public class CreateCbioportalFilesWithPositiveVariants {
 		XSSFWorkbook myWorkBook;
 		XSSFSheet mySheet;
 		Iterator<Row> rowIterator;
-		myFile = new File(/*"/media/cgix-ngs/bioinfo/ashish/Myeloid_patient_list.xlsx"*/metaDataFile);
+		myFile = new File(/*"/media/cgix-ngs/bioinfo/ashish/Myeloid_patient_list.xlsx"*/metaDataFile/*"/media/cgix-ngs/bioinfo/ashish/Run-Summary-Sheets/Gilead_0123_Sample_list_for_NGS_Meta_data.xlsx"*/);
 		fis = new FileInputStream(myFile);
 		myWorkBook = new XSSFWorkbook (fis);
 		int count = 0;
@@ -175,7 +175,7 @@ public class CreateCbioportalFilesWithPositiveVariants {
 				Constants.TUMOR_SEQ_ALLELE_2,Constants.DBSNP_RS,Constants.T_ALT_COUNT,Constants.T_REF_COUNT,Constants.CHROMOSOME,Constants.SEQUENCER,Constants.AMINO_ACID_CHANGE,Constants.MUTATION_STATUS,Constants.END_POSITION,Constants.COMMENTS,Constants.CGIX_SIGN_OUT_STATUS,Constants.CGIX_POLYPHEN_VALUE,Constants.CGIX_POLYPHEN_CALL,
 				Constants.CGIX_SIFT_VALUE,Constants.CGIX_SIFT_CALL,Constants.CGIX_FINAL_ASSESMENT,Constants.VALIDATION_STATUS,Constants.VALIDATION_METHOD,Constants.CGIX_ASSAY_ID));
 		//Reading from Final Mutation Summary Analysis File
-		File dir = new File(/*"/media/cgix-ngs/bioinfo/ashish/myeloid-test/"*/summarySheetFolder);
+		File dir = new File(/*"/media/cgix-ngs/bioinfo/ashish/myeloid-test/"*/summarySheetFolder/*"/media/cgix-ngs/bioinfo/ashish/Run-Summary-Sheets/Run-Summary-Sheets/"*/);
 		File [] files = dir.listFiles();
 		//Sets to find faulty files and patients Ids not in meta file.
 		Set<String> faultFiles = new HashSet<String>();
